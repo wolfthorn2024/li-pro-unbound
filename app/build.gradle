@@ -1,0 +1,39 @@
+apply plugin: 'com.android.application'
+
+android {
+    namespace "kz.prounbound"
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "kz.prounbound"
+        minSdk 21
+        targetSdk 34
+        versionCode 3
+        versionName "3.0"
+    }
+    signingConfigs {
+        debug {
+            storeFile file('../keystore.debug.jks')
+            storePassword project.hasProperty('STOREPASS') ? STOREPASS : 'apptest'
+            keyAlias project.hasProperty('KEYALIAS') ? KEYALIAS : 'apptest'
+            keyPassword project.hasProperty('KEYPASS') ? KEYPASS : 'apptest'
+        }
+    }
+
+    applicationVariants.configureEach { variant ->
+        variant.outputs.configureEach { output ->
+            outputFileName = "ProUnbound.apk"
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    sourceSets.test.resources.srcDir 'src/main/assets'
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.13.2'
+}
