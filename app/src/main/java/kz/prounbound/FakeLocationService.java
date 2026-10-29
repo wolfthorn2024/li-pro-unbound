@@ -48,7 +48,7 @@ public final class FakeLocationService extends Service {
     public static final String PREF_SPEED = "speed_kmh";
     private static final String CHANNEL_ID = "g30_route";
     private static final int NOTIFICATION_ID = 1001;
-    private static final long UPDATE_INTERVAL_MS = 33;
+    private static final long UPDATE_INTERVAL_MS = 250;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final LocalBinder binder = new LocalBinder();
@@ -62,7 +62,7 @@ public final class FakeLocationService extends Service {
     private int timerSeconds;
     private boolean timerFinished;
     private int lastNotificationSeconds = -2;
-    private MockLocationPublisher publisher;
+    private OneMapLocationPublisher publisher;
     private PowerManager.WakeLock wakeLock;
     private long wakeLockRenewedAt;
     private boolean running;
@@ -95,7 +95,7 @@ public final class FakeLocationService extends Service {
         timerEnabled = getSharedPreferences(PREFS, MODE_PRIVATE).getBoolean(PREF_TIMER_ENABLED, false);
         timerSeconds = Math.max(1, Math.min(SpoofingSession.MAX_TIMER_SECONDS,
                 getSharedPreferences(PREFS, MODE_PRIVATE).getInt(PREF_TIMER_SECONDS, 60)));
-        publisher = new MockLocationPublisher(this);
+        publisher = new OneMapLocationPublisher(this);
         configureRoute(getSharedPreferences(PREFS, MODE_PRIVATE)
                 .getString(PREF_ROUTE_ID, "g30-loop"));
         try (InputStreamReader input = new InputStreamReader(
@@ -153,7 +153,7 @@ public final class FakeLocationService extends Service {
             setSpeedKmh(requestedSpeed);
             if (Build.VERSION.SDK_INT >= 29) {
                 startForeground(NOTIFICATION_ID, buildNotification(),
-                        ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION);
+                        ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
             } else {
                 startForeground(NOTIFICATION_ID, buildNotification());
             }

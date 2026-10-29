@@ -2,24 +2,16 @@ package kz.prounbound.ui;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.AppOpsManager;
-import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.location.LocationManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
-import android.os.Process;
-import android.provider.Settings;
-import android.text.TextUtils;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -40,7 +32,6 @@ import kz.prounbound.route.RouteCatalog;
 import kz.prounbound.spoofing.SpoofingSession;
 
 import java.util.Random;
-import java.util.List;
 
 /** Mode and optional auto-stop settings on one screen. */
 public final class MainActivity extends Activity {
@@ -48,7 +39,6 @@ public final class MainActivity extends Activity {
     private static final boolean SIMPLE_UI = true;
     private static final int SIMPLE_TIMER_SECONDS = 30;
     private String lastShownError;
-    private static final int REQUEST_LOCATION = 1;
     private static final int REQUEST_NOTIFICATIONS = 2;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private FakeLocationService service;
@@ -64,7 +54,6 @@ public final class MainActivity extends Activity {
     private TextView coordinates;
     private TextView altitude;
     private TextView locationProviders;
-    private LocationManager locationManager;
     private ProgressBar routeProgress;
     private Button startStop;
     private Spinner mode;
@@ -117,7 +106,6 @@ public final class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         locationProviders = findViewById(R.id.location_providers);
-        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         findViewById(R.id.advanced_controls).setVisibility(SIMPLE_UI ? View.GONE : View.VISIBLE);
         findViewById(R.id.details_controls).setVisibility(SIMPLE_UI ? View.GONE : View.VISIBLE);
         findViewById(R.id.app_title).setVisibility(SIMPLE_UI ? View.GONE : View.VISIBLE);
@@ -310,13 +298,7 @@ public final class MainActivity extends Activity {
     }
 
     private void updateScreen() {
-        List<String> providers = locationManager.getAllProviders();
-        String providersText = getString(R.string.location_providers,
-                providers.isEmpty() ? getString(R.string.no_location_providers)
-                        : TextUtils.join(", ", providers));
-        if (!providersText.contentEquals(locationProviders.getText())) {
-            locationProviders.setText(providersText);
-        }
+        locationProviders.setText(R.string.location_providers);
         int selectedMode = service == null ? mode.getSelectedItemPosition() : service.getMode();
         boolean stationary = selectedMode == SpoofingSession.MODE_STATIONARY_CHINA;
         int routeIndex = service == null ? routeChoice.getSelectedItemPosition()
@@ -382,48 +364,9 @@ public final class MainActivity extends Activity {
         } else coordinates.setText(stationary ? R.string.stationary_pending : R.string.loading);
     }
 
-    private boolean hasLocationPermission() {
-        return Build.VERSION.SDK_INT < 23
-                || checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                || checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
-    }
-
     private void checkPermissionsAndStart() {
         if (!pendingStart) return;
         SharedPreferences prefs = getSharedPreferences(FakeLocationService.PREFS, MODE_PRIVATE);
-        if (!hasLocationPermission()) {
-            if (prefs.getBoolean("location_asked", false)
-                    && !shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)
-                    && !shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_COARSE_LOCATION)) {
-                pendingStart = false;
-                showSettingsDialog(R.string.location_denied, R.string.permission_settings,
-                        new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                                Uri.parse("package:" + getPackageName())));
-                return;
-            }
-            prefs.edit().putBoolean("location_asked", true).apply();
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_LOCATION);
-            return;
-        }
-        LocationManager locations = (LocationManager) getSystemService(LOCATION_SERVICE);
-        boolean locationEnabled = Build.VERSION.SDK_INT >= 28 ? locations.isLocationEnabled()
-                : locations.isProviderEnabled(LocationManager.GPS_PROVIDER)
-                || locations.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-        if (!locationEnabled) {
-            pendingStart = false;
-            showSettingsDialog(R.string.location_title, R.string.location_hint,
-                    new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
-            return;
-        }
-        AppOpsManager appOps = (AppOpsManager) getSystemService(APP_OPS_SERVICE);
-        if (appOps.checkOpNoThrow(AppOpsManager.OPSTR_MOCK_LOCATION, Process.myUid(),
-                getPackageName()) != AppOpsManager.MODE_ALLOWED) {
-            pendingStart = false;
-            showSettingsDialog(R.string.mock_title, R.string.setup_hint,
-                    new Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS));
-            return;
-        }
         if (Build.VERSION.SDK_INT >= 33
                 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
                 && !prefs.getBoolean("notifications_asked", false)) {
@@ -460,24 +403,10 @@ public final class MainActivity extends Activity {
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
         super.onRequestPermissionsResult(requestCode, permissions, results);
-        if (requestCode == REQUEST_LOCATION && !hasLocationPermission()) {
-            pendingStart = false;
-            Toast.makeText(this, R.string.location_denied, Toast.LENGTH_LONG).show();
-        } else if (requestCode == REQUEST_LOCATION || requestCode == REQUEST_NOTIFICATIONS) {
+        if (requestCode == REQUEST_NOTIFICATIONS) {
             // Denying notifications must not loop the permission dialog or block playback.
             checkPermissionsAndStart();
         }
     }
 
-    private void showSettingsDialog(int title, int message, Intent settings) {
-        new AlertDialog.Builder(this).setTitle(title).setMessage(message)
-                .setPositiveButton(R.string.settings, (dialog, which) -> {
-                    try {
-                        startActivity(settings);
-                    } catch (ActivityNotFoundException e) {
-                        Toast.makeText(this, R.string.settings_unavailable, Toast.LENGTH_LONG).show();
-                    }
-                })
-                .setNegativeButton(android.R.string.cancel, null).show();
-    }
 }
