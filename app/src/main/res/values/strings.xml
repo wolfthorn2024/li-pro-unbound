@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">ProUnbound</string>
-    <string name="location_providers">Провайдеры координат: %1$s</string>
+    <string name="location_providers">OneMap: location_info</string>
     <string name="no_location_providers">нет доступных</string>
     <string name="vertical_accuracy_title">Точность высоты</string>
     <string name="speed_accuracy_title">Точность скорости</string>
@@ -22,7 +22,7 @@
     <string name="paused">Движение приостановлено · GPS активен</string>
     <string name="progress">Круг %1$d · %2$.2f из %3$.2f км</string>
     <string name="coordinates">%1$.6f, %2$.6f</string>
-    <string name="setup_hint">Перед первым запуском выберите ProUnbound в настройках разработчика → «Приложение для фиктивных местоположений».</string>
+    <string name="setup_hint">Запустите OneMap в том же профиле Android. Выбирать приложение для фиктивного местоположения не требуется.</string>
     <string name="mock_title">Выберите приложение для подмены GPS</string>
     <string name="settings">Открыть настройки</string>
     <string name="location_title">Включите геолокацию</string>
@@ -31,9 +31,9 @@
     <string name="permission_settings">Разрешение отключено. Откройте настройки приложения и разрешите доступ к местоположению.</string>
     <string name="settings_unavailable">Откройте настройки Android вручную.</string>
     <string name="route_error">Не удалось загрузить встроенный маршрут.</string>
-    <string name="mock_error">Не удалось запустить подмену GPS. Проверьте выбор ProUnbound в настройках разработчика.</string>
+    <string name="mock_error">Не удалось отправить данные в инженерный receiver OneMap. Проверьте установку OneMap и профиль Android.</string>
     <string name="service_error">Не удалось запустить маршрут. Проверьте разрешения и геолокацию.</string>
-    <string name="channel_name">Подмена GPS</string>
+    <string name="channel_name">OneMap location_info</string>
     <string name="notification_title">ProUnbound</string>
     <string name="notification_speed">Скорость %1$d км/ч</string>
     <string name="mode_label">Режим работы</string>
@@ -46,19 +46,19 @@
     <string name="stationary_description">При каждом запуске выбирается новая точка в материковом Китае. Координата остаётся неизменной до остановки.</string>
     <string name="stationary_active">Стоим в случайной точке Китая · 0 км/ч</string>
     <string name="stationary_pending">Точка будет выбрана при запуске</string>
-    <string name="timer_toggle">Автоматически отключить подмену GPS</string>
+    <string name="timer_toggle">Автоматически отключить передачу координат</string>
     <string name="timer_duration">Отключить через %1$d:%2$02d</string>
     <string name="timer_remaining">До отключения: %1$d:%2$02d</string>
-    <string name="timer_hint">От 1 секунды до 5 минут. Таймер отсчитывается с запуска; по истечении времени подмена GPS полностью отключается.</string>
-    <string name="timer_finished">Время истекло · подмена GPS отключена</string>
+    <string name="timer_hint">От 1 секунды до 5 минут. Таймер отсчитывается с запуска; по истечении времени передача координат полностью отключается.</string>
+    <string name="timer_finished">Время истекло · передача координат отключена</string>
     <string name="china_error">Не удалось загрузить границу Китая.</string>
     <string name="route_label">Маршрут · G30 или один из 10 спринтов</string>
     <string name="random_sprint">Выбрать случайный спринт</string>
-    <string name="sprint_description">%1$.2f км · платная %2$s · предел 120 км/ч по OSM\nПри выбранной скорости: %3$s. На финише подмена GPS отключается.\n© OpenStreetMap contributors</string>
+    <string name="sprint_description">%1$.2f км · платная %2$s · предел 120 км/ч по OSM\nПри выбранной скорости: %3$s. На финише передача координат отключается.\n© OpenStreetMap contributors</string>
     <string name="duration_minutes">%1$.1f мин</string>
     <string name="duration_paused">движение остановлено</string>
     <string name="sprint_progress">Пройдено %1$.2f из %2$.2f км</string>
-    <string name="sprint_finished">Спринт завершён · подмена GPS отключена</string>
+    <string name="sprint_finished">Спринт завершён · передача координат отключена</string>
     <string name="accuracy_label">Точность GPS: %1$d м</string>
     <string name="accuracy_hint">Заявленная погрешность от 0 до 5 метров. Можно менять во время работы; координаты не смещаются.</string>
     <string name="altitude_label">Высота по рельефу: %1$.1f м над уровнем моря</string>
